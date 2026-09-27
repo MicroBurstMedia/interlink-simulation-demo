@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Interlink Method™ interactive customer journey demo" />
+  <title>Interlink Method™ Dispatch Demo</title>
+  <style>
+    :root {
+      --navy: #15324a;
+      --navy-2: #0d2436;
+      --teal: #0d9488;
+      --teal-dark: #087f75;
+      --mint: #d9f6ef;
+      --ink: #203244;
+      --muted: #6d7d8d;
+      --line: #dbe5ea;
+      --paper: #ffffff;
+      --canvas: #f4f8f9;
+      --yellow: #f3c969;
+      --green: #17815f;
+      --red: #b42318;
+      --shadow: 0 18px 50px rgba(21, 50, 74, .10);
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .65; }
+    a { color: inherit; }
+
+    .app-shell { min-height: 100vh; }
+    .topbar {
+      position: sticky; top: 0; z-index: 10;
+      min-height: 74px; display: flex; align-items: center;
+      justify-content: space-between; gap: 24px;
+      padding: 14px clamp(18px, 5vw, 68px);
+      background: rgba(255,255,255,.92); border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(16px);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 850; letter-spacing: -.03em; }
+    .brand-mark { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--navy); color: white; font-weight: 900; }
+    .brand small { display: block; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+    .step-nav { display: flex; gap: 8px; align-items: center; }
+    .step-nav button { border: 0; background: transparent; color: var(--muted); padding: 9px 11px; border-radius: 10px; font-size: 12px; font-weight: 800; }
+    .step-nav button.active { background: var(--navy); color: white; }
+    .step-nav button.done { color: var(--teal-dark); }
+
+    main { width: min(1180px, calc(100% - 36px)); margin: 0 auto; padding: 48px 0 76px; }
+    .view { display: none; animation: rise .35s ease both; }
+    .view.active { display: block; }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .eyebrow { color: var(--teal-dark); text-transform: uppercase; letter-spacing: .13em; font-size: 12px; font-weight: 900; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 16px; font-size: clamp(38px, 6vw, 72px); line-height: .98; letter-spacing: -.065em; color: var(--navy-2); }
+    h2 { font-size: clamp(27px, 4vw, 48px); line-height: 1.05; letter-spacing: -.045em; color: var(--navy-2); }
+    h3 { font-size: 20px; margin-bottom: 8px; }
+    .lede { max-width: 640px; color: var(--muted); font-size: 18px; }
+    .muted { color: var(--muted); }
+    .fine { color: var(--muted); font-size: 12px; }
+
+    .btn { border: 0; border-radius: 12px; padding: 13px 18px; font-weight: 850; transition: transform .15s, box-shadow .15s, background .15s; }
+    .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(21,50,74,.14); }
+    .btn-primary { color: white; background: var(--navy); }
+    .btn-primary:hover:not(:disabled) { background: var(--navy-2); }
+    .btn-teal { color: white; background: var(--teal); }
+    .btn-teal:hover:not(:disabled) { background: var(--teal-dark); }
+    .btn-ghost { background: transparent; color: var(--muted); padding-inline: 8px; }
+    .btn-outline { background: white; color: var(--navy); border: 1px solid var(--line); }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .card.pad { padding: clamp(22px, 4vw, 38px); }
+    .hero-grid { display: grid; grid-template-columns: 1.04fr .96fr; gap: 54px; align-items: center; }
+    .hero-art { min-height: 460px; position: relative; overflow: hidden; border-radius: 30px; background: linear-gradient(150deg, #14344b 0%, #1d5460 58%, #66b8a7 100%); box-shadow: 0 28px 60px rgba(21,50,74,.2); }
+    .hero-art:before { content: ""; position: absolute; width: 340px; height: 340px; border-radius: 50%; background: rgba(243,201,105,.92); top: -80px; right: -70px; }
+    .hero-art:after { content: ""; position: absolute; width: 220px; height: 220px; border-radius: 40px; border: 2px solid rgba(255,255,255,.24); transform: rotate(30deg); bottom: -50px; left: -44px; }
+    .art-copy { position: absolute; z-index: 1; inset: auto 34px 34px; color: white; }
+    .art-copy .stamp { display: inline-flex; border: 1px solid rgba(255,255,255,.45); border-radius: 999px; padding: 7px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; font-weight: 850; }
+    .art-copy strong { display: block; max-width: 330px; font-size: 40px; line-height: .98; letter-spacing: -.05em; margin-top: 16px; }
+    .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 74px; }
+    .feature { padding: 22px; border-radius: 16px; background: white; border: 1px solid var(--line); }
+    .feature b { display: block; color: var(--navy); margin-bottom: 6px; }
+    .feature p { color: var(--muted); font-size: 14px; margin-bottom: 0; }
+
+    .profile-layout { display: grid; grid-template-columns: .8fr 1.2fr; gap: 28px; align-items: start; }
+    .profile-card { text-align: center; padding: 36px 26px; }
+    .avatar { width: 92px; height: 92px; margin: 0 auto 16px; display: grid; place-items: center; border-radius: 28px; color: white; font-size: 30px; font-weight: 900; background: linear-gradient(135deg, var(--teal), var(--navy)); }
+    .profile-card h2 { font-size: 29px; margin-bottom: 7px; }
+    .profile-card p { color: var(--muted); }
+    .bio-link { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-top: 22px; padding: 18px; border: 1px solid rgba(13,148,136,.25); border-radius: 14px; background: var(--mint); color: var(--navy); font-weight: 900; text-align: left; }
+    .journey-card { padding: clamp(24px, 4vw, 42px); }
+    .journey-card .journey-list { display: grid; gap: 12px; margin: 26px 0 30px; }
+    .journey-step { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: #fbfdfd; }
+    .journey-step span { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; color: white; background: var(--navy); font-weight: 900; font-size: 13px; }
+    .journey-step div { font-weight: 800; }
+    .journey-step small { display: block; color: var(--muted); font-weight: 500; }
+
+    .section-head { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 26px; }
+    .product-layout { display: grid; grid-template-columns: .9fr 1.1fr; gap: 32px; align-items: start; }
+    .product-art { min-height: 540px; display: flex; flex-direction: column; justify-content: space-between; padding: 30px; overflow: hidden; background: linear-gradient(145deg, #effbf7, #b6e8d9); border: 1px solid #b9e2d5; position: relative; }
+    .product-art:before { content: ""; position: absolute; width: 300px; height: 300px; border-radius: 50%; background: #f4c86d; right: -80px; top: 80px; }
+    .product-art .paper { position: relative; z-index: 1; align-self: center; width: min(78%, 300px); min-height: 300px; padding: 30px 24px; display: flex; flex-direction: column; justify-content: space-between; background: rgba(255,255,255,.87); border-radius: 10px; box-shadow: 14px 18px 0 rgba(21,50,74,.1); transform: rotate(-5deg); }
+    .paper .paper-label { font-size: 11px; font-weight: 900; letter-spacing: .16em; color: var(--teal-dark); }
+    .paper strong { font-size: 32px; line-height: .96; letter-spacing: -.05em; color: var(--navy); }
+    .product-art .art-footer { position: relative; z-index: 1; font-size: 12px; font-weight: 800; color: var(--navy); }
+    .form-card { padding: 28px; }
+    .field { margin-bottom: 17px; }
+    label { display: block; margin-bottom: 7px; color: var(--navy); font-size: 13px; font-weight: 850; }
+    input { width: 100%; border: 1px solid #cbd8df; border-radius: 10px; background: white; color: var(--ink); padding: 12px 13px; outline: none; }
+    input:focus { border-color: var(--teal); box-shadow: 0 0 0 4px rgba(13,148,136,.12); }
+    .input-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+    .qty-control { display: flex; align-items: center; gap: 10px; }
+    .qty-control button { width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 10px; background: white; color: var(--navy); font-weight: 900; }
+    .qty-control input { width: 70px; text-align: center; }
+    .summary { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .summary-line { display: flex; justify-content: space-between; gap: 16px; margin: 10px 0; color: var(--muted); font-size: 14px; }
+    .summary-line.total { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--navy); font-size: 21px; font-weight: 900; }
+    .discount-note { margin-top: 10px; padding: 10px 12px; border-radius: 10px; color: var(--green); background: #e7f7ee; font-size: 12px; font-weight: 800; }
+    .error-note { margin-top: 10px; padding: 10px 12px; border-radius: 10px; color: var(--red); background: #fff1f0; font-size: 12px; font-weight: 750; }
+
+    .checkout-layout { display: grid; grid-template-columns: 1.2fr .8fr; gap: 32px; align-items: start; }
+    .form-section { padding: 28px; margin-bottom: 18px; }
+    .form-section h3 { margin-bottom: 20px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .secure { display: flex; gap: 10px; align-items: center; padding: 12px; border-radius: 10px; color: #256273; background: #e9f7fa; font-size: 12px; font-weight: 700; }
+    .order-card { padding: 26px; position: sticky; top: 98px; }
+    .order-product { padding-bottom: 18px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
+    .order-product strong { display: block; color: var(--navy); font-size: 18px; }
+    .order-product span { color: var(--muted); font-size: 13px; }
+    .inline-error { color: var(--red); font-size: 12px; margin-top: 6px; }
+    .processing { display: inline-flex; align-items: center; gap: 8px; }
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.45); border-top-color: white; border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .success-hero { text-align: center; max-width: 720px; margin: 0 auto 34px; }
+    .success-mark { width: 88px; height: 88px; display: grid; place-items: center; margin: 0 auto 20px; border-radius: 50%; color: white; background: var(--green); font-size: 42px; box-shadow: 0 0 0 14px rgba(23,129,95,.12); }
+    .thank-layout { display: grid; grid-template-columns: 1fr .75fr; gap: 26px; align-items: start; }
+    .detail-card, .access-card { padding: 28px; }
+    .detail-row { display: flex; justify-content: space-between; gap: 20px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .detail-row:last-child { border-bottom: 0; }
+    .detail-row span { color: var(--muted); font-size: 13px; }
+    .detail-row strong { text-align: right; color: var(--navy); }
+    .access-card { background: #effaf5; border-color: #bfe8d1; }
+    .access-state { min-height: 165px; display: grid; place-items: center; text-align: center; }
+    .access-loader { width: 50px; height: 50px; border: 5px solid #ccebd9; border-top-color: var(--green); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 14px; }
+    .access-ready { color: var(--green); font-size: 54px; font-weight: 900; line-height: 1; }
+    .mini-list { padding: 18px 0 0; border-top: 1px solid #c6e4d2; margin-top: 20px; color: var(--muted); font-size: 13px; }
+    .mini-list div { margin: 7px 0; }
+    .mini-list b { color: var(--green); margin-right: 6px; }
+    .about { margin-top: 30px; padding: 26px; }
+
+    footer { padding: 26px 18px 38px; text-align: center; color: var(--muted); font-size: 12px; }
+    .toast { position: fixed; left: 50%; bottom: 24px; z-index: 20; transform: translate(-50%, 130%); transition: transform .25s ease; padding: 12px 16px; border-radius: 10px; color: white; background: var(--navy); box-shadow: var(--shadow); font-size: 13px; font-weight: 800; }
+    .toast.show { transform: translate(-50%, 0); }
+
+    @media (max-width: 860px) {
+      .step-nav { display: none; }
+      .hero-grid, .profile-layout, .product-layout, .checkout-layout, .thank-layout { grid-template-columns: 1fr; }
+      .hero-art { min-height: 340px; }
+      .product-art { min-height: 360px; }
+      .order-card { position: static; }
+    }
+    @media (max-width: 560px) {
+      main { width: min(100% - 24px, 1180px); padding-top: 32px; }
+      .topbar { padding-inline: 14px; }
+      .brand small { display: none; }
+      .feature-grid { grid-template-columns: 1fr; margin-top: 42px; }
+      .two-col { grid-template-columns: 1fr; gap: 0; }
+      .section-head { display: block; }
+      .section-head .actions { margin-top: 16px; }
+      h1 { font-size: 48px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="brand btn-ghost" data-route="home" aria-label="Go to the Interlink Method home page">
+        <span class="brand-mark">↗</span>
+        <span>Interlink Method™<small>customer journey demo</small></span>
+      </button>
+      <nav class="step-nav" aria-label="Journey steps">
+        <button data-route="social">01 Social</button>
+        <button data-route="landing">02 Landing</button>
+        <button data-route="checkout">03 Checkout</button>
+        <button data-route="thankyou">04 Access</button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="home" class="view active">
+        <div class="hero-grid">
+          <div>
+            <div class="eyebrow">An interactive strategy walkthrough</div>
+            <h1>Connect the clicks. Deliver the value.</h1>
+            <p class="lede">The Interlink Method™ shows how a business can guide a customer from social discovery to a confident purchase and instant digital access—without broken handoffs.</p>
+            <div class="actions" style="margin-top:28px">
+              <button class="btn btn-primary" data-route="social">Start the journey →</button>
+              <button class="btn btn-outline" data-route="landing">Jump to product page</button>
+            </div>
+          </div>
+          <div class="hero-art" aria-label="Abstract illustration of a connected customer journey">
+            <div class="art-copy"><span class="stamp">From attention to access</span><strong>One connected flow. Four moments that feel intentional.</strong></div>
+          </div>
+        </div>
+        <div class="feature-grid">
+          <div class="feature"><b>01 · Social discovery</b><p>A recognizable profile and link-in-bio CTA create a clear entry point.</p></div>
+          <div class="feature"><b>02 · Value framing</b><p>A customizable offer lets a business test price, quantity, tax, and promotion.</p></div>
+          <div class="feature"><b>03 · Instant delivery</b><p>A simulated checkout closes the loop with automatic access after payment.</p></div>
+        </div>
+      </section>
+
+      <section id="social" class="view">
+        <div class="section-head"><div><div class="eyebrow">Stage 01 · Social media</div><h2>Make the next click obvious.</h2><p class="lede">A focused business profile turns attention into a purposeful visit to the product experience.</p></div><span class="fine">Entry point</span></div>
+        <div class="profile-layout">
+          <article class="card profile-card">
+            <div class="avatar">NB</div><h2>Northstar Business</h2><p>@northstar.business</p>
+            <p>Practical systems for small teams ready to make their next move.</p>
+            <button class="bio-link" data-route="landing"><span>↓ Explore the Digital Business Toolkit</span><b>↗</b></button>
+            <p class="fine" style="margin:14px 0 0">Link in bio · Updated today</p>
+          </article>
+          <article class="card journey-card">
+            <div class="eyebrow">Why this works</div><h3>Every touchpoint carries the same promise.</h3><p class="muted">Instead of asking a customer to figure out what to do next, the social post, landing page, checkout, and delivery moment reinforce one continuous story.</p>
+            <div class="journey-list"><div class="journey-step"><span>1</span><div>Discover <small>Profile introduces a useful outcome.</small></div></div><div class="journey-step"><span>2</span><div>Explore <small>Link in bio opens a focused offer.</small></div></div><div class="journey-step"><span>3</span><div>Decide <small>Transparent pricing reduces friction.</small></div></div></div>
+            <button class="btn btn-teal" data-route="landing">Open the linked offer →</button>
+          </article>
+        </div>
+      </section>
+
+      <section id="landing" class="view">
+        <div class="section-head"><div><div class="eyebrow">Stage 02 · Product landing page</div><h2>Shape the offer before you buy.</h2><p class="lede">Edit the product details below and watch the offer update throughout the rest of the journey.</p></div><button class="btn btn-ghost" data-route="social">← Back to social</button></div>
+        <div class="product-layout">
+          <article class="card product-art"><div class="art-footer">NORTHSTAR / DIGITAL PRODUCT</div><div class="paper"><span class="paper-label">FIELD GUIDE 01</span><strong id="artProductName">Digital Business Toolkit</strong><span class="muted">A practical operating system for clearer weekly execution.</span></div><div class="art-footer">Downloadable · Instant access</div></article>
+          <article class="card form-card">
+            <div class="eyebrow">Customize your test scenario</div>
+            <h3 id="productNameHeading">Digital Business Toolkit</h3><p class="muted">Give your digital product a name and price that fit the business model you want to demonstrate.</p>
+            <div class="field"><label for="productName">Product name</label><input id="productName" type="text" value="Digital Business Toolkit" maxlength="80" /></div>
+            <div class="field"><label for="price">Unit price (USD)</label><input id="price" type="number" min="0" step="0.01" value="49.00" /></div>
+            <div class="field"><label>Quantity</label><div class="qty-control"><button type="button" id="qtyDown" aria-label="Decrease quantity">−</button><input id="quantity" type="number" min="1" step="1" value="1" /><button type="button" id="qtyUp" aria-label="Increase quantity">+</button></div></div>
+            <div class="field"><label for="tax">Tax rate (%)</label><input id="tax" type="number" min="0" max="100" step="0.1" value="10" /></div>
+            <div class="field"><label for="discount">Optional discount code</label><div class="input-row"><input id="discount" type="text" placeholder="Try LAUNCH20" /><button class="btn btn-outline" type="button" id="applyDiscount">Apply</button></div><p class="fine" style="margin:7px 0 0">Try LAUNCH20, SAVE15, WELCOME10, or FRIEND25.</p><div id="discountMessage" aria-live="polite"></div></div>
+            <div class="summary" aria-live="polite"><div class="summary-line"><span id="subtotalLabel">Subtotal (1 × $49.00)</span><b id="subtotal">$49.00</b></div><div class="summary-line" id="discountLine" hidden><span id="discountLabel">Discount (0%)</span><b id="discountAmount" style="color:var(--green)">-$0.00</b></div><div class="summary-line"><span id="taxLabel">Tax (10%)</span><b id="taxAmount">$4.90</b></div><div class="summary-line total"><span>Total</span><b id="total">$53.90</b></div></div>
+            <button class="btn btn-teal" style="width:100%; margin-top:24px" id="proceedToCheckout">Proceed to self-checkout →</button>
+            <p class="fine" style="text-align:center; margin:13px 0 0">🔒 Secure simulation · ✓ Instant access · 30-day guarantee</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="checkout" class="view">
+        <div class="section-head"><div><div class="eyebrow">Stage 03 · Self-checkout</div><h2>Make the decision feel safe.</h2><p class="lede">This simulated checkout validates the customer details and creates an order record for the access step.</p></div><button class="btn btn-ghost" data-route="landing">← Edit offer</button></div>
+        <div id="emptyCart" class="card pad" hidden><h3>Your test cart is empty.</h3><p class="muted">Return to the landing page to configure a product before checking out.</p><button class="btn btn-teal" data-route="landing">Back to product page</button></div>
+        <div id="checkoutContent" class="checkout-layout">
+          <div><div class="card form-section"><h3>Customer information</h3><div class="field"><label for="email">Email address</label><input id="email" type="email" placeholder="customer@example.com" autocomplete="email" /><div class="inline-error" id="emailError"></div></div><div class="field"><label for="fullName">Full name</label><input id="fullName" type="text" placeholder="Jordan Lee" autocomplete="name" /><div class="inline-error" id="nameError"></div></div></div><div class="card form-section"><h3>Payment information</h3><div class="field"><label for="cardNumber">Card number</label><input id="cardNumber" inputmode="numeric" placeholder="4532 1234 5678 9010" autocomplete="cc-number" /><div class="inline-error" id="cardError"></div></div><div class="two-col"><div class="field"><label for="expiry">Expiry date</label><input id="expiry" placeholder="MM/YY" autocomplete="cc-exp" /><div class="inline-error" id="expiryError"></div></div><div class="field"><label for="cvv">CVV</label><input id="cvv" inputmode="numeric" placeholder="123" autocomplete="cc-csc" /><div class="inline-error" id="cvvError"></div></div></div><div class="secure">▣ Your payment details are used only for this local demo simulation.</div></div></div>
+          <aside class="card order-card"><div class="eyebrow">Review order</div><h3>Order summary</h3><div class="order-product"><strong id="checkoutProduct">Digital Business Toolkit</strong><span id="checkoutQuantity">Quantity: 1</span></div><div class="summary-line"><span>Subtotal</span><b id="checkoutSubtotal">$49.00</b></div><div class="summary-line" id="checkoutDiscountLine" hidden><span id="checkoutDiscountLabel">Discount</span><b id="checkoutDiscount" style="color:var(--green)">-$0.00</b></div><div class="summary-line"><span id="checkoutTaxLabel">Tax</span><b id="checkoutTax">$4.90</b></div><div class="summary-line total"><span>Total</span><b id="checkoutTotal">$53.90</b></div><button class="btn btn-primary" style="width:100%; margin-top:24px" id="completePurchase">Complete purchase · $53.90</button><p class="fine" style="text-align:center; margin:13px 0 0">By continuing, you agree to the demo terms.</p></aside>
+        </div>
+      </section>
+
+      <section id="thankyou" class="view">
+        <div class="success-hero"><div class="success-mark">✓</div><div class="eyebrow">Stage 04 · Automatic access</div><h2>Value delivered, without the wait.</h2><p class="lede" style="margin-inline:auto">The purchase is confirmed and the digital product is provisioned automatically—closing the loop from discovery to delivery.</p></div>
+        <div id="noOrder" class="card pad" hidden><h3>No completed order yet.</h3><p class="muted">Run through the social, landing, and checkout stages first.</p><button class="btn btn-teal" data-route="social">Start the journey</button></div>
+        <div id="thankContent" class="thank-layout">
+          <article class="card detail-card"><div class="eyebrow">Receipt</div><h3>Order confirmed</h3><div class="detail-row"><span>Order ID</span><strong id="orderId">#MBM-1027</strong></div><div class="detail-row"><span>Order date</span><strong id="orderDate">—</strong></div><div class="detail-row"><span>Customer</span><strong id="orderCustomer">—</strong></div><div class="detail-row"><span>Email</span><strong id="orderEmail">—</strong></div><div class="detail-row"><span>Product</span><strong id="orderProduct">—</strong></div><div class="detail-row"><span>Amount paid</span><strong id="orderAmount" style="color:var(--green)">$0.00</strong></div><div class="discount-note" style="margin-top:20px">✉ Confirmation email simulated for the customer.</div></article>
+          <aside class="card access-card"><div class="eyebrow">Provisioning status</div><h3>Digital product access</h3><div class="access-state" id="accessState"><div><div class="access-loader"></div><b>Granting access…</b><p class="fine">Connecting the customer to their download.</p></div></div><div class="mini-list"><div><b>✓</b>Access your product immediately</div><div><b>✓</b>Receipt and link sent by email</div><div><b>✓</b>30-day money-back guarantee</div></div></aside>
+        </div>
+        <div class="card about"><div class="eyebrow">The interlink takeaway</div><h3>Each stage earns the next stage.</h3><p class="muted">You just experienced a complete customer journey: social discovery created intent, the landing page clarified value, checkout reduced friction, and automatic access delivered on the promise.</p><div class="actions"><button class="btn btn-primary" data-route="social">Run it again</button><button class="btn btn-outline" data-route="landing">Test another offer</button></div></div>
+      </section>
+    </main>
+    <footer>Interlink Method™ · From social media to instant digital access · Interactive business demo</footer>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = 'interlink-demo-state-v1';
+      const ORDER_KEY = 'interlink-demo-order-v1';
+      const discounts = { LAUNCH20: 20, SAVE15: 15, WELCOME10: 10, FRIEND25: 25 };
+      const state = Object.assign({ name: 'Digital Business Toolkit', price: 49, quantity: 1, tax: 10, code: '', discount: 0 }, load(STORAGE_KEY));
+      let currentRoute = 'home';
+      let accessTimer;
+
+      const $ = (id) => document.getElementById(id);
+      const money = (n) => `$${Number(n || 0).toFixed(2)}`;
+      const clampNumber = (value, min, max, fallback) => { const n = Number(value); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback; };
+      function load(key) { try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch { return {}; } }
+      function save(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch {} }
+      function totals() { const subtotal = state.price * state.quantity; const discount = subtotal * (state.discount / 100); const tax = subtotal * (state.tax / 100); return { subtotal, discount, tax, total: subtotal + tax - discount }; }
+      function showToast(message) { const toast = $('toast'); toast.textContent = message; toast.classList.add('show'); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => toast.classList.remove('show'), 2600); }
+      function routeFromHash() { return (location.hash || '#home').slice(1) || 'home'; }
+      function go(route) { if (location.hash !== '#' + route) location.hash = route; else render(route); }
+      function render(route = routeFromHash()) {
+        const valid = ['home', 'social', 'landing', 'checkout', 'thankyou']; currentRoute = valid.includes(route) ? route : 'home';
+        document.querySelectorAll('.view').forEach(view => view.classList.toggle('active', view.id === currentRoute));
+        document.querySelectorAll('[data-route]').forEach(button => { if (button.tagName === 'BUTTON' && button.closest('.step-nav')) button.classList.toggle('active', button.dataset.route === currentRoute); });
+        const order = ['social', 'landing', 'checkout', 'thankyou']; const currentIndex = order.indexOf(currentRoute);
+        document.querySelectorAll('.step-nav button').forEach(button => { const index = order.indexOf(button.dataset.route); button.classList.toggle('done', index !== -1 && index < currentIndex); });
+        if (currentRoute === 'landing') updateLanding();
+        if (currentRoute === 'checkout') updateCheckout();
+        if (currentRoute === 'thankyou') updateThankyou();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      function updateLanding() {
+        const t = totals(); $('productName').value = state.name; $('price').value = state.price.toFixed(2); $('quantity').value = state.quantity; $('tax').value = state.tax; $('discount').value = state.code;
+        $('productNameHeading').textContent = state.name; $('artProductName').textContent = state.name; $('subtotalLabel').textContent = `Subtotal (${state.quantity} × ${money(state.price)})`; $('subtotal').textContent = money(t.subtotal); $('taxLabel').textContent = `Tax (${state.tax}%)`; $('taxAmount').textContent = money(t.tax); $('total').textContent = money(t.total);
+        $('discountLine').hidden = state.discount === 0; $('discountLabel').textContent = `Discount (${state.discount}%)`; $('discountAmount').textContent = `-${money(t.discount)}`;
+        $('discountMessage').innerHTML = state.discount ? `<div class="discount-note">${state.code} applied · ${state.discount}% off</div>` : '';
+      }
+      function updateCheckout() {
+        const hasCart = state.price >= 0 && state.name; $('emptyCart').hidden = hasCart; $('checkoutContent').hidden = !hasCart; if (!hasCart) return;
+        const t = totals(); $('checkoutProduct').textContent = state.name; $('checkoutQuantity').textContent = `Quantity: ${state.quantity}`; $('checkoutSubtotal').textContent = money(t.subtotal); $('checkoutTaxLabel').textContent = `Tax (${state.tax}%)`; $('checkoutTax').textContent = money(t.tax); $('checkoutTotal').textContent = money(t.total); $('completePurchase').innerHTML = `Complete purchase · ${money(t.total)}`;
+        $('checkoutDiscountLine').hidden = state.discount === 0; $('checkoutDiscountLabel').textContent = `Discount (${state.discount}%)`; $('checkoutDiscount').textContent = `-${money(t.discount)}`;
+      }
+      function updateThankyou() {
+        const order = load(ORDER_KEY); const hasOrder = Boolean(order && order.orderId); $('noOrder').hidden = hasOrder; $('thankContent').hidden = !hasOrder; if (!hasOrder) return;
+        $('orderId').textContent = order.orderId; $('orderDate').textContent = new Date(order.timestamp).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }); $('orderCustomer').textContent = order.fullName; $('orderEmail').textContent = order.email; $('orderProduct').textContent = order.product; $('orderAmount').textContent = money(order.amount);
+        const access = $('accessState'); access.innerHTML = `<div><div class="access-loader"></div><b>Granting access…</b><p class="fine">Connecting the customer to their download.</p></div>`; clearTimeout(accessTimer); accessTimer = setTimeout(() => { access.innerHTML = `<div><div class="access-ready">✓</div><b style="color:var(--green)">Access granted</b><p class="fine">Your download is ready to use.</p><button class="btn btn-teal" type="button" id="downloadButton" style="margin-top:12px">↓ Download product</button></div>`; $('downloadButton').addEventListener('click', () => showToast('Demo download prepared.')); }, 1300);
+      }
+      function persistState() { save(STORAGE_KEY, state); updateLanding(); updateCheckout(); }
+      function applyDiscount() { const code = $('discount').value.trim().toUpperCase(); state.code = code; state.discount = discounts[code] || 0; persistState(); if (state.discount) showToast(`${code} applied.`); else showToast(code ? 'That code is not available in this demo.' : 'Discount removed.'); }
+      function validateCheckout() { const fields = { email: $('email').value.trim(), fullName: $('fullName').value.trim(), card: $('cardNumber').value.replace(/\s/g, ''), expiry: $('expiry').value.trim(), cvv: $('cvv').value.trim() }; const errors = { email: fields.email.includes('@') ? '' : 'Enter a valid email address.', fullName: fields.fullName ? '' : 'Enter the customer name.', card: fields.card.length >= 13 ? '' : 'Enter at least 13 digits.', expiry: /^(0[1-9]|1[0-2])\/\d{2}$/.test(fields.expiry) ? '' : 'Use MM/YY format.', cvv: /^\d{3,4}$/.test(fields.cvv) ? '' : 'Enter a 3–4 digit CVV.' }; $('emailError').textContent = errors.email; $('nameError').textContent = errors.fullName; $('cardError').textContent = errors.card; $('expiryError').textContent = errors.expiry; $('cvvError').textContent = errors.cvv; return !Object.values(errors).some(Boolean); }
+
+      document.addEventListener('click', (event) => { const routeButton = event.target.closest('[data-route]'); if (routeButton) { event.preventDefault(); go(routeButton.dataset.route); } });
+      window.addEventListener('hashchange', () => render());
+      $('productName').addEventListener('input', (event) => { state.name = event.target.value.trim() || 'Untitled Digital Product'; persistState(); });
+      $('price').addEventListener('input', (event) => { state.price = clampNumber(event.target.value, 0, 1000000, 0); persistState(); });
+      $('quantity').addEventListener('input', (event) => { state.quantity = Math.round(clampNumber(event.target.value, 1, 99, 1)); persistState(); });
+      $('tax').addEventListener('input', (event) => { state.tax = clampNumber(event.target.value, 0, 100, 0); persistState(); });
+      $('qtyDown').addEventListener('click', () => { state.quantity = Math.max(1, state.quantity - 1); persistState(); });
+      $('qtyUp').addEventListener('click', () => { state.quantity = Math.min(99, state.quantity + 1); persistState(); });
+      $('applyDiscount').addEventListener('click', applyDiscount);
+      $('discount').addEventListener('keydown', (event) => { if (event.key === 'Enter') applyDiscount(); });
+      $('proceedToCheckout').addEventListener('click', () => { if (!state.name.trim()) { showToast('Add a product name first.'); return; } save(STORAGE_KEY, state); go('checkout'); });
+      $('completePurchase').addEventListener('click', async () => { if (!validateCheckout()) { showToast('Please review the highlighted fields.'); return; } const button = $('completePurchase'); button.disabled = true; button.innerHTML = '<span class="processing"><span class="spinner"></span> Processing…</span>'; await new Promise(resolve => setTimeout(resolve, 1100)); const t = totals(); const order = { orderId: '#MBM-' + String(Math.floor(1000 + Math.random() * 9000)), email: $('email').value.trim(), fullName: $('fullName').value.trim(), product: state.name, amount: t.total, timestamp: new Date().toISOString() }; save(ORDER_KEY, order); button.disabled = false; go('thankyou'); });
+      render(routeFromHash());
+    })();
+  </script>
+</body>
+</html>
